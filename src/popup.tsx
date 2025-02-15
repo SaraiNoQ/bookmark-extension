@@ -22,6 +22,7 @@ function Popup() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentUrl, setCurrentUrl] = useState('');
   const [currentTitle, setCurrentTitle] = useState('');
+  const [currentIcon, setCurrentIcon] = useState('');
   const [loading, setLoading] = useState(true);
   const [showImportError, setShowImportError] = useState(false);
 
@@ -198,7 +199,8 @@ function Popup() {
   // 处理导出
   const handleExport = () => {
     const data = {
-      bookmarks: categories.flatMap(cat => cat.bookmarks)
+      bookmarks: categories.flatMap(cat => cat.bookmarks),
+      categories: categories.map(cat => cat.name)
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -222,12 +224,23 @@ function Popup() {
     setSelectedCategory(categoryName);
   };
 
+  const createRandomId = () => {
+    return Math.floor(Math.random() * 10);
+  }
+
+  const checkIconFormat = (icon: string) => {
+    if (icon.startsWith('/') && icon.endsWith('.svg')) {
+      return icon;
+    }
+    return `/default${createRandomId()}.svg`;
+  };
+
   const handleSave = async () => {
     const newBookmark: Bookmark = {
       id: Math.random().toString(36).substr(2, 9),
       title: currentTitle,
       url: currentUrl,
-      icon: '/default.svg',
+      icon: checkIconFormat(currentIcon),
       category: selectedCategory
     };
 
@@ -310,6 +323,16 @@ function Popup() {
           value={currentTitle}
           onChange={(e) => setCurrentTitle(e.target.value)}
           placeholder="网址名称"
+          className="title-input"
+        />
+      </div>
+
+      <div className="current-page">
+        <input
+          type="text"
+          value={currentIcon}
+          onChange={(e) => setCurrentIcon(e.target.value)}
+          placeholder="网址图标（可选）"
           className="title-input"
         />
       </div>
