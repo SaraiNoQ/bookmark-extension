@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowUpTrayIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ArrowUpTrayIcon, ArrowDownTrayIcon, PlusIcon } from '@heroicons/react/24/outline';
 import './styles.css';
 
 interface Bookmark {
@@ -25,6 +25,8 @@ function Popup() {
   const [currentIcon, setCurrentIcon] = useState('');
   const [loading, setLoading] = useState(true);
   const [showImportError, setShowImportError] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const DATA = [
     {
@@ -214,6 +216,40 @@ function Popup() {
     URL.revokeObjectURL(url);
   };
 
+  // 添加分类
+  const AddCategory = () => {
+    setShowAddCategoryModal(true);
+  };
+
+  // 处理添加分类的确认操作
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      return;
+    }
+
+    try {
+      // 获取现有书签数据
+      const bookmarksData = await chrome.storage.local.get('bookmarks');
+      const bookmarks = bookmarksData.bookmarks || [];
+
+      // 添加新分类到 categories
+      setCategories([
+        ...categories,
+        {
+          name: newCategoryName,
+          bookmarks: [],
+          isExpanded: false
+        }
+      ]);
+
+      // 重置状态
+      setNewCategoryName('');
+      setShowAddCategoryModal(false);
+    } catch (error) {
+      console.error('Error adding category:', error);
+    }
+  };
+
   const handleCategoryClick = (categoryName: string) => {
     setCategories(categories.map(cat => ({
       ...cat,
@@ -275,7 +311,7 @@ function Popup() {
           htmlFor="import-input"
           className="action-button"
           title="导入书签"
-        >
+        > 
           <ArrowUpTrayIcon className="up-arrow" />
         </label>
         <button
@@ -284,6 +320,13 @@ function Popup() {
           title="导出书签"
         >
           <ArrowDownTrayIcon className="down-arrow" />
+        </button>
+        <button
+          onClick={AddCategory}
+          className="action-button"
+          title="添加分类"
+        >
+          <PlusIcon className="up-arrow" />
         </button>
       </div>
 
@@ -345,6 +388,39 @@ function Popup() {
           收藏
         </button>
       </div>
+
+      {/* 添加分类的模态框 */}
+      {showAddCategoryModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3 className="modal-title">添加新分类</h3>
+            <input
+              type="text"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="请输入分类名称"
+              className="title-input"
+            />
+            <div className="modal-actions">
+              <button 
+                onClick={() => {
+                  setShowAddCategoryModal(false);
+                  setNewCategoryName('');
+                }}
+                className="cancel-button"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleAddCategory}
+                className="save-button"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
