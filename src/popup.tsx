@@ -340,6 +340,12 @@ function Popup() {
     }
   };
 
+  // 添加书签点击处理函数
+  const handleBookmarkClick = (url: string) => {
+    chrome.tabs.create({ url });
+  };
+
+
   if (loading) {
     return <div className="loading">加载中...</div>;
   }
@@ -408,27 +414,32 @@ function Popup() {
               </button>
             </div>
             {category.isExpanded && (
-              <div className="bookmarks">
-                {category.bookmarks.map(bookmark => (
-                  <div key={bookmark.id} className="bookmark">
-                    <span>{bookmark.title}</span>
-                    <button
-                      className="delete-button bookmark-delete"
-                      onClick={() => {
-                        setDeleteTarget({ 
-                          type: 'bookmark', 
-                          id: bookmark.id,
-                          category: category.name 
-                        });
-                        setShowDeleteModal(true);
-                      }}
-                    >
-                      <TrashIcon className="delete-icon" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="bookmarks">
+              {category.bookmarks.map(bookmark => (
+                <div 
+                  key={bookmark.id} 
+                  className="bookmark"
+                  onClick={() => handleBookmarkClick(bookmark.url)}
+                >
+                  <span className="bookmark-title">{bookmark.title}</span>
+                  <button
+                    className="delete-button bookmark-delete"
+                    onClick={(e) => {
+                      e.stopPropagation(); // 阻止冒泡，避免触发书签点击
+                      setDeleteTarget({ 
+                        type: 'bookmark', 
+                        id: bookmark.id,
+                        category: category.name 
+                      });
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <TrashIcon className="delete-icon" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           </div>
         ))}
       </div>

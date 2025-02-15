@@ -52,6 +52,7 @@
   padding: 4px 0;
 }
 
+/* 更新书签样式 */
 .bookmark {
   padding: 4px 12px;
   font-size: 13px;
@@ -60,6 +61,9 @@
   display: flex;
   align-items: center;
   padding-right: 32px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .current-page {
@@ -264,9 +268,10 @@
   transform: translateY(-50%);
 }
 
-/* 书签删除按钮 */
+/* 确保删除按钮在hover状态下保持可见 */
 .bookmark:hover .delete-button {
   opacity: 1;
+  color: #666;
 }
 
 .bookmark-delete {
@@ -288,3 +293,24 @@
   font-size: 14px;
   line-height: 1.5;
 }
+
+
+
+.bookmark:hover {
+  background-color: rgba(66, 133, 244, 0.08);
+  color: #4285F4;
+}
+
+.bookmark-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+.bookmark .delete-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+} 
