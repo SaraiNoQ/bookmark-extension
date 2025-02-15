@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ArrowUpTrayIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import './styles.css';
 
 interface Bookmark {
@@ -22,93 +23,109 @@ function Popup() {
   const [currentUrl, setCurrentUrl] = useState('');
   const [currentTitle, setCurrentTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showImportError, setShowImportError] = useState(false);
+
+  const DATA = [
+    {
+      id: '1',
+      title: 'GitHub',
+      url: 'https://github.com',
+      icon: '/icons/github.svg',
+      category: 'Developer'
+    },
+    {
+      id: '2',
+      title: 'Google',
+      url: 'https://www.google.com',
+      icon: '/icons/google.svg',
+      category: 'Tools'
+    },
+    {
+      id: '3',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '4',
+      title: 'DouYin',
+      url: 'https://www.douyin.com',
+      icon: '/icons/douyin.svg',
+      category: 'Entertainment'
+    },
+    {
+      id: '5',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '6',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '7',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '8',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '9',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '10',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+    {
+      id: '11',
+      title: 'QQ',
+      url: 'https://www.google.com',
+      icon: '',
+      category: 'Social'
+    },
+  ];
 
   useEffect(() => {
     // 加载书签数据
     const loadBookmarks = async () => {
       try {
-        // const bookmarksData = await chrome.storage.local.get('bookmarks');
-        // const bookmarks: Bookmark[] = bookmarksData.bookmarks || [];
+        // 初始化一个空数组
+        let bookmarks: Bookmark[] = [];
 
-        const bookmarks: Bookmark[] = [
-          {
-            id: '1',
-            title: 'GitHub',
-            url: 'https://github.com',
-            icon: '/icons/github.svg',
-            category: 'Developer'
-          },
-          {
-            id: '2',
-            title: 'Google',
-            url: 'https://www.google.com',
-            icon: '/icons/google.svg',
-            category: 'Tools'
-          },
-          {
-            id: '3',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '4',
-            title: 'DouYin',
-            url: 'https://www.douyin.com',
-            icon: '/icons/douyin.svg',
-            category: 'Entertainment'
-          },
-          {
-            id: '5',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '6',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '7',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '8',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '9',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '10',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-          {
-            id: '11',
-            title: 'QQ',
-            url: 'https://www.google.com',
-            icon: '',
-            category: 'Social'
-          },
-        ]; 
+        try {
+          const bookmarksData = await chrome.storage.local.get('bookmarks');
+          if (bookmarksData?.bookmarks && bookmarksData.bookmarks.length > 0) {
+            // 如果 bookmarksData 中有数据，则使用它替换 bookmarks
+            bookmarks = bookmarksData.bookmarks;
+          } else {
+            // 如果没有数据，可以使用默认的书签数据
+            bookmarks = DATA;
+          }
+        } catch (error) {
+          console.error('Error loading bookmarks:', error);
+          // 遇到异常，多半是数据格式不正确，使用默认的书签数据
+          bookmarks = DATA;
+        }
         
         // 按分类组织书签
         const categorizedBookmarks = bookmarks.reduce((acc: Category[], bookmark) => {
@@ -148,6 +165,53 @@ function Popup() {
     });
   }, []);
 
+    
+  // 处理文件导入
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const content = await file.text();
+      const data = JSON.parse(content);
+      
+      // 验证数据格式
+      if (!Array.isArray(data.bookmarks)) {
+        throw new Error('Invalid bookmarks format');
+      }
+
+      // 保存到 chrome.storage
+      await chrome.storage.local.set({ bookmarks: data.bookmarks });
+      
+      // 重新加载数据
+      window.location.reload();
+    } catch (error) {
+      console.error('Import error:', error);
+      setShowImportError(true);
+      setTimeout(() => setShowImportError(false), 3000);
+    }
+    
+    // 清理 input
+    event.target.value = '';
+  };
+
+  // 处理导出
+  const handleExport = () => {
+    const data = {
+      bookmarks: categories.flatMap(cat => cat.bookmarks)
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bookmarks-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleCategoryClick = (categoryName: string) => {
     setCategories(categories.map(cat => ({
       ...cat,
@@ -185,6 +249,38 @@ function Popup() {
 
   return (
     <div className="popup">
+      {/* 添加导入导出按钮 */}
+      <div className="import-export-buttons">
+        <input
+          type="file"
+          id="import-input"
+          accept=".json"
+          onChange={handleImport}
+          className="hidden"
+        />
+        <label
+          htmlFor="import-input"
+          className="action-button"
+          title="导入书签"
+        >
+          <ArrowUpTrayIcon className="up-arrow" />
+        </label>
+        <button
+          onClick={handleExport}
+          className="action-button"
+          title="导出书签"
+        >
+          <ArrowDownTrayIcon className="down-arrow" />
+        </button>
+      </div>
+
+      {/* 错误提示 */}
+      {showImportError && (
+        <div className="error-toast">
+          导入失败：无效的文件格式
+        </div>
+      )}
+
       <div className="categories">
         {categories.map(category => (
           <div key={category.name} className="category">

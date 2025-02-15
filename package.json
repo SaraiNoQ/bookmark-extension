@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@types/chrome": "^0.0.304",
     "copy-webpack-plugin": "^12.0.2",
     "react": "^19.0.0",
