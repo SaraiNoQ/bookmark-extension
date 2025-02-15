@@ -27,8 +27,88 @@ function Popup() {
     // 加载书签数据
     const loadBookmarks = async () => {
       try {
-        const bookmarksData = await chrome.storage.local.get('bookmarks');
-        const bookmarks: Bookmark[] = bookmarksData.bookmarks || [];
+        // const bookmarksData = await chrome.storage.local.get('bookmarks');
+        // const bookmarks: Bookmark[] = bookmarksData.bookmarks || [];
+
+        const bookmarks: Bookmark[] = [
+          {
+            id: '1',
+            title: 'GitHub',
+            url: 'https://github.com',
+            icon: '/icons/github.svg',
+            category: 'Developer'
+          },
+          {
+            id: '2',
+            title: 'Google',
+            url: 'https://www.google.com',
+            icon: '/icons/google.svg',
+            category: 'Tools'
+          },
+          {
+            id: '3',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '4',
+            title: 'DouYin',
+            url: 'https://www.douyin.com',
+            icon: '/icons/douyin.svg',
+            category: 'Entertainment'
+          },
+          {
+            id: '5',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '6',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '7',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '8',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '9',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '10',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+          {
+            id: '11',
+            title: 'QQ',
+            url: 'https://www.google.com',
+            icon: '',
+            category: 'Social'
+          },
+        ]; 
         
         // 按分类组织书签
         const categorizedBookmarks = bookmarks.reduce((acc: Category[], bookmark) => {
@@ -73,6 +153,9 @@ function Popup() {
       ...cat,
       isExpanded: cat.name === categoryName ? !cat.isExpanded : cat.isExpanded
     })));
+
+    // 更新选中状态
+    setSelectedCategory(categoryName);
   };
 
   const handleSave = async () => {
@@ -105,23 +188,23 @@ function Popup() {
       <div className="categories">
         {categories.map(category => (
           <div key={category.name} className="category">
-            <div 
-              className={`category-header ${selectedCategory === category.name ? 'selected' : ''}`}
-              onClick={() => handleCategoryClick(category.name)}
-            >
-              <span className="dot" style={{ backgroundColor: getCategoryColor(category.name) }} />
-              <span className="category-name">{category.name}</span>
-            </div>
-            {category.isExpanded && (
-              <div className="bookmarks">
-                {category.bookmarks.map(bookmark => (
-                  <div key={bookmark.id} className="bookmark">
-                    {bookmark.title}
-                  </div>
-                ))}
-              </div>
-            )}
+          <div 
+            className={`category-header ${selectedCategory === category.name ? 'selected' : ''}`}
+            onClick={() => handleCategoryClick(category.name)}
+          >
+            <span className="dot" style={{ backgroundColor: getCategoryColor(category.name) }} />
+            <span className="category-name">{category.name}</span>
           </div>
+          {category.isExpanded && (
+            <div className="bookmarks">
+              {category.bookmarks.map(bookmark => (
+                <div key={bookmark.id} className="bookmark">
+                  {bookmark.title}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         ))}
       </div>
 
