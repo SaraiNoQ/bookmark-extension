@@ -23,6 +23,8 @@
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.2s;
+  position: relative;
+  padding-right: 32px;
 }
 
 .category-header:hover {
@@ -54,6 +56,10 @@
   padding: 4px 12px;
   font-size: 13px;
   color: #666;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-right: 32px;
 }
 
 .current-page {
@@ -222,3 +228,63 @@
 }
 
 /* 已有的按钮样式可以复用 */
+
+/* 删除按钮样式 */
+.delete-button {
+  opacity: 0;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.delete-icon {
+  width: 100%;
+  height: 100%;
+  color: #666;
+}
+
+/* 分类删除按钮 */
+.category-header:hover .delete-button {
+  opacity: 1;
+}
+
+.category-delete {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 书签删除按钮 */
+.bookmark:hover .delete-button {
+  opacity: 1;
+}
+
+.bookmark-delete {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.delete-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* 模态框内容样式 */
+.modal-content {
+  color: #666;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}

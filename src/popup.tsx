@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowUpTrayIcon, ArrowDownTrayIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ArrowUpTrayIcon, ArrowDownTrayIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import './styles.css';
 
 interface Bookmark {
@@ -27,6 +27,13 @@ function Popup() {
   const [showImportError, setShowImportError] = useState(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'category' | 'bookmark';
+    name?: string;
+    id?: string;
+    category?: string;
+  } | null>(null);
 
   const DATA = [
     {
@@ -123,6 +130,8 @@ function Popup() {
           } else {
             // 如果没有数据，可以使用默认的书签数据
             bookmarks = DATA;
+            // 保存到 chrome.storage
+            await chrome.storage.local.set({ bookmarks: DATA });
           }
         } catch (error) {
           console.error('Error loading bookmarks:', error);
@@ -292,6 +301,45 @@ function Popup() {
     }
   };
 
+  // 处理删除确认
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      const bookmarksData = await chrome.storage.local.get('bookmarks');
+      let bookmarks = bookmarksData.bookmarks || [];
+
+      if (deleteTarget.type === 'category') {
+        // 删除整个分类
+        bookmarks = bookmarks.filter((b: any) => b.category !== deleteTarget.name);
+        // 更新 categories 状态
+        setCategories(categories.filter(c => c.name !== deleteTarget.name));
+      } else {
+        // 删除单个书签
+        bookmarks = bookmarks.filter((b: any) => b.id !== deleteTarget.id);
+        // 更新 categories 状态
+        setCategories(categories.map(cat => {
+          if (cat.name === deleteTarget.category) {
+            return {
+              ...cat,
+              bookmarks: cat.bookmarks.filter(b => b.id !== deleteTarget.id)
+            };
+          }
+          return cat;
+        }));
+      }
+
+      // 保存到 storage
+      await chrome.storage.local.set({ bookmarks });
+      
+      // 重置删除状态
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error('Error deleting:', error);
+    }
+  };
+
   if (loading) {
     return <div className="loading">加载中...</div>;
   }
@@ -340,23 +388,48 @@ function Popup() {
       <div className="categories">
         {categories.map(category => (
           <div key={category.name} className="category">
-          <div 
-            className={`category-header ${selectedCategory === category.name ? 'selected' : ''}`}
-            onClick={() => handleCategoryClick(category.name)}
-          >
-            <span className="dot" style={{ backgroundColor: getCategoryColor(category.name) }} />
-            <span className="category-name">{category.name}</span>
-          </div>
-          {category.isExpanded && (
-            <div className="bookmarks">
-              {category.bookmarks.map(bookmark => (
-                <div key={bookmark.id} className="bookmark">
-                  {bookmark.title}
-                </div>
-              ))}
+            <div 
+              className={`category-header ${selectedCategory === category.name ? 'selected' : ''}`}
+              onClick={() => handleCategoryClick(category.name)}
+            >
+              <span className="dot" style={{ backgroundColor: getCategoryColor(category.name) }} />
+              <span className="category-name">{category.name}</span>
+              <button
+                className="delete-button category-delete"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteTarget({ type: 'category', name: category.name });
+                  setShowDeleteModal(true);
+                }}
+              >
+                <svg className="delete-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          )}
-        </div>
+            {category.isExpanded && (
+              <div className="bookmarks">
+                {category.bookmarks.map(bookmark => (
+                  <div key={bookmark.id} className="bookmark">
+                    <span>{bookmark.title}</span>
+                    <button
+                      className="delete-button bookmark-delete"
+                      onClick={() => {
+                        setDeleteTarget({ 
+                          type: 'bookmark', 
+                          id: bookmark.id,
+                          category: category.name 
+                        });
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <TrashIcon className="delete-icon" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -413,6 +486,37 @@ function Popup() {
               </button>
               <button 
                 onClick={handleAddCategory}
+                className="save-button"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 删除确认模态框 */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3 className="modal-title">确认删除</h3>
+            <p className="modal-content">
+              {deleteTarget?.type === 'category' 
+                ? `是否删除分类"${deleteTarget.name}"及其所有书签？`
+                : `是否删除书签？`}
+            </p>
+            <div className="modal-actions">
+              <button 
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
+                className="cancel-button"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleDelete}
                 className="save-button"
               >
                 确认
