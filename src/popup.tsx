@@ -176,7 +176,6 @@ function Popup() {
       setLoading(false);
     });
   }, []);
-
     
   // 处理文件导入
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,23 +205,44 @@ function Popup() {
     // 清理 input
     event.target.value = '';
   };
+  
+  const generateHash = async (blob: Blob) => {
+    // 将Blob转换为ArrayBuffer
+    const arrayBuffer = await blob.arrayBuffer();
+
+    // 使用crypto.subtle.digest生成哈希值
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+
+    // 将哈希值转换为十六进制字符串
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+    return hashHex.slice(0, 16);
+  }
 
   // 处理导出
-  const handleExport = () => {
+  const handleExport = async () => {
     const data = {
       bookmarks: categories.flatMap(cat => cat.bookmarks),
       categories: categories.map(cat => cat.name)
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    
+    //为文件生成哈希值
+    const hash: string = await generateHash(blob);
+    
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bookmarks-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `bookmarks-${hash}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // 关闭当前页面
+    window.close();
   };
 
   // 添加分类
